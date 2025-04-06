@@ -1,16 +1,31 @@
+"""TODO: Add documentation.
+
+Explain everything!!
+"""
+
+
 ########################################
 
 import numpy as np
-
-import pandas as pd
 from pandas import DataFrame
-
-import collections
 from collections import deque
-
 from sklearn.tree import DecisionTreeClassifier
 
+from sklearn.model_selection import StratifiedKFold
+from sklearn.metrics import precision_score
+
+from itertools import product
+
+import os
+import joblib
+
+from datetime import datetime
+
 def prepare_tree_dataframe(t):
+    """TODO: Add documentation.
+    
+    Explain everything!!
+    """
     n_nodes, n_tasks, n_classes = t.value.shape
 
     value_columns = [f"_value_{i}" for i in range(n_classes)]
@@ -69,14 +84,7 @@ def prepare_tree_dataframe(t):
 
 ########################################
 
-from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import precision_score
 
-from itertools import product
-
-from os import path
-import joblib
 
 def train_cross_validated_trees(data, targets, 
                                 max_depth_per_tree, min_samples_per_leaf,
@@ -86,16 +94,29 @@ def train_cross_validated_trees(data, targets,
                                 score_func=lambda y, yhat: precision_score(y, yhat, average='weighted'),
                                 overfitting_threshold=.2,
                                 underfitting_threshold=.7,
+                                trial_name="trial",
                                 save_path_prefix=None, save_source_data=True, overwrite=False,
                                 other_dt_kwargs={},
                                 other_dt_fit_kwargs={}):
-    
+    """TODO: Add documentation.
+
+    Explain everything!!
+    """
     records = []
     SEED = random_state
     max_depths = max_depth_per_tree
     min_samples = min_samples_per_leaf
     kfolds = cross_val_kfolds
-    
+
+    now = datetime.now()
+    timestamp = now.strftime("%y-%m-%d-%H-%M-%S")
+    trial_name = f"{trial_name}_{timestamp}"
+
+    save_path_prefix = save_path_prefix or "./results"
+    trial_path = os.path.join(save_path_prefix, trial_name)
+    if not os.path.exists(trial_path):
+        os.mkdir(trial_path)
+
     trials = product(max_depths, min_samples, kfolds)
     trial_id = 0
     for d, s, k in trials:
@@ -114,34 +135,76 @@ def train_cross_validated_trees(data, targets,
             verbose > 0 and print(f"{trial_id=} {trn_prc=} {val_prc=}")
             
             nodeDF = prepare_tree_dataframe(clf.tree_)
-            is_overfitting = abs(trn_prc - val_prc) > overfitting_threshold
-            is_underfitting = val_prc < underfitting_threshold
+            isOverfitting = abs(trn_prc - val_prc) > overfitting_threshold
+            isUnderfitting = val_prc < underfitting_threshold
+
+            isOverfitting = int(isOverfitting)
+            isUnderfitting = int(isUnderfitting)
             
-            verbose > 1 and is_overfitting and print(f"OVERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {overfitting_threshold=}")
-            verbose > 1 and is_underfitting and print(f"UNDERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {underfitting_threshold=}")
-            
-            record = dict(max_depth=d,
-                          min_samples=s,
-                          nodeDF=nodeDF,
-                          model=clf,
-                          data=data, targets=targets,
-                          trnXi=trn_idxs, trnYi=trn_idxs,
-                          valXi=val_idxs, valYi=val_idxs,
-                          overfitting=is_overfitting, underfitting=is_underfitting)
+            verbose > 1 and isOverfitting and print(f"OVERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {overfitting_threshold=}")
+            verbose > 1 and isUnderfitting and print(f"UNDERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {underfitting_threshold=}")
+
+            # run_path_prefix = os.path.join(save_path_prefix, f"run_{d:04d}_{s:04d}_{k:04d}")
+            # 
+            # if not os.path.exists(run_path_prefix):
+            #     os.mkdir(run_path_prefix)
+            #     pass
+            # 
+            # def save_model(model, filename):
+            #     joblib.dump(clf, filename)
+            #     return
+            # 
+            # def save_data(data, filename):
+            #  pass   
             
             if save_path_prefix:
-                file_name = f"{trial_id=:04d}_{d=:02d}_{s=:02d}_{k=:02d}_{trn_prc=:.2f}_{val_prc=:.2f}.joblib"
-                file_path = path.join(save_path_prefix, file_name)
+                file_name = f"{trial_id=:04d}_{d=:02d}_{s=:02d}_{k=:02d}_{trn_prc=:.2f}_{val_prc=:.2f}_{isOverfitting=}_{isUnderfitting=}"
+                csvs_path = os.path.join(trial_path, "csvs")
+                idxs_path = os.path.join(trial_path, "idxs")
+                mdls_path = os.path.join(trial_path, "mdls")
                 
-                if path.exists(file_path) and not overwrite:
+                file_path = os.path.join(trial_path, file_name)
+                
+                if os.path.exists(file_path) and not overwrite:
                     raise FileExistsError()
+
+                if not os.path.exists(csvs_path):
+                    os.mkdir(csvs_path)
+
+                if not os.path.exists(idxs_path):
+                    os.mkdir(idxs_path)
+                    
+                if not os.path.exists(mdls_path):
+                    os.mkdir(mdls_path)
+
+                # Saving files
+                joblib.dump(value=clf,
+                            filename=os.path.join(mdls_path, f"{file_name}.joblib"))
+                nodeDF.to_csv(os.path.join(csvs_path, f"{file_name}.csv"), index=False)
+
+                np.savetxt(os.path.join(idxs_path, f"{file_name}_trnidxs.txt"), trn_idxs, fmt="%d")
+                np.savetxt(os.path.join(idxs_path, f"{file_name}_validxs.txt"), val_idxs, fmt="%d")
                 
-                joblib.dump(value=record, filename=file_path)
                 pass
+            
+            record = dict(max_depth=d,
+                          trial_id=trial_id,
+                          min_samples=s,
+                          num_folds=k,
+                          # nodeDF=nodeDF,
+                          # model=clf,
+                          # data=data, targets=targets,
+                          filename=file_name,
+                          # trnXi=trn_idxs, trnYi=trn_idxs,
+                          # valXi=val_idxs, valYi=val_idxs,
+                          overfitting=isOverfitting, underfitting=isUnderfitting)
             
             records.append(record)
             trial_id += 1
             pass
         pass
-    return records
+    df = DataFrame(records)
+    df.set_index('trial_id')
+    df.to_csv(os.path.join(trial_path, "index.csv"), index=False)
+    return df
 
