@@ -60,26 +60,28 @@ def prepare_tree_dataframe(t):
     nodesDF.set_index("id", inplace=True)
     
     ## Extracting Paths (only supports single-output training!!)
-    stack = deque([(int(0), -1, [0])])  # [(node, parent, path)] 
+    stack = deque([(int(0), 'R', -1, [0])])  # [(node, parent, path)] 
     traversed_tree = []                 # [(node, parent, path)]
 
     while len(stack):
-        node, parent, path_so_far = stack.pop()
+        node, name, parent, path_so_far = stack.pop()
         l, r = nodesDF.iloc[node]["left right".split()].astype(int)
         is_leaf = (l == r)
 
         # print((node, parent, path_so_far))
-        traversed_tree.append((node, parent, path_so_far))
+        traversed_tree.append((node, name, parent, path_so_far))
 
         if not is_leaf:
-            stack.append((r, node, path_so_far + [r]))
-            stack.append((l, node, path_so_far + [l]))
+            stack.append((r, f"{name}r", node, path_so_far + [r]))
+            stack.append((l, f"{name}l", node, path_so_far + [l]))
             pass
         pass
-    pathsDF = DataFrame(traversed_tree, columns="node parent path".split())
-    pathsDF.set_index("node", inplace=True)
-
-    return nodesDF.join(pathsDF)
+    pathsDF = DataFrame(traversed_tree, columns="id node_name parent path".split())
+    pathsDF.set_index("id", inplace=True)
+    traversed_nodesDF = nodesDF.join(pathsDF)
+    traversed_nodesDF.reset_index()
+    traversed_nodesDF.set_index("node_name", inplace=True)
+    return traversed_nodesDF
 
 
 ########################################
@@ -180,7 +182,7 @@ def train_cross_validated_trees(data, targets,
                 # Saving files
                 joblib.dump(value=clf,
                             filename=os.path.join(mdls_path, f"{file_name}.joblib"))
-                nodeDF.to_csv(os.path.join(csvs_path, f"{file_name}.csv"), index=False)
+                nodeDF.to_csv(os.path.join(csvs_path, f"{file_name}.csv"))
 
                 np.savetxt(os.path.join(idxs_path, f"{file_name}_trnidxs.txt"), trn_idxs, fmt="%d")
                 np.savetxt(os.path.join(idxs_path, f"{file_name}_validxs.txt"), val_idxs, fmt="%d")
@@ -204,7 +206,7 @@ def train_cross_validated_trees(data, targets,
             pass
         pass
     df = DataFrame(records)
-    df.set_index('trial_id')
+    df.set_index('trial_id', inplace=True)
     df.to_csv(os.path.join(trial_path, "index.csv"), index=False)
     return df
 
