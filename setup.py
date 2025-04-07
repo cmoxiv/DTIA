@@ -10,6 +10,10 @@ setup(
     author_email='k.hossny@kth.se',
     license='BSD 2-clause',
     packages=find_packages(),
+    install_requires=[
+        'numpy>=1.21.0',
+        'pandas'
+    ],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
