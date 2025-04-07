@@ -45,7 +45,7 @@ pip install git+https://github.com/cmoxiv/DTIA.git
 To run the `iris` example.
 
 ```
-python iris_example.py
+python iris-example.py
 ```
 
 ## Examples
