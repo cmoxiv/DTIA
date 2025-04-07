@@ -34,6 +34,7 @@ class DecisionTreeInsightAnalyser:
         self.other_dt_kwargs = other_dt_kwargs
         self.other_dt_fit_kwargs = other_dt_fit_kwargs
         self.columns_to_report = columns_to_report
+        self.trial_name = trial_name
         pass
 
     def fit(self, X, y):
