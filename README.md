@@ -42,13 +42,18 @@ conda install pip
 pip install git+https://github.com/cmoxiv/DTIA.git
 ```
 
-To run the `iris` example.
+To `reinstall` the package with the latest updates
 
+``` powershell
+pip install --force-reinstall git+https://github.com/cmoxiv/DTIA.git
+```
+
+
+## Examples
+To run the `iris` example.
 ```
 python iris-example.py
 ```
-
-## Examples
 
 ### Iris Example
 ``` python
