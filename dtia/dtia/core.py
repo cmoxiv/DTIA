@@ -128,7 +128,8 @@ def train_cross_validated_trees(data, targets,
                                 underfitting_threshold=.95,
                                 trial_name="trial",
                                 save_figs=True, 
-                                save_path_prefix=None, save_source_data=True, overwrite=False,
+                                save_path_prefix="./results", save_source_data=True,
+                                # overwrite=False,
                                 other_dt_kwargs={},
                                 other_dt_fit_kwargs={}):
     """TODO: Add documentation.
@@ -186,10 +187,10 @@ def train_cross_validated_trees(data, targets,
                     idxs_path = os.path.join(trial_path, "idxs")
                     mdls_path = os.path.join(trial_path, "mdls")
                     
-                    file_path = os.path.join(trial_path, file_name)
+                    # file_path = os.path.join(trial_path, file_name)
                     
-                    if os.path.exists(file_path) and not overwrite:
-                        raise FileExistsError()
+                    # if os.path.exists(file_path) and not overwrite:
+                    #     raise FileExistsError()
                     
                     if not os.path.exists(csvs_path):
                         os.mkdir(csvs_path)
@@ -303,10 +304,10 @@ def generate_trial_summary(trialsDF, path_prefix,
     Add everything!!
     """
     filename = os.path.join(path_prefix, "summary.csv")
-    df, _ = filter_trials(trialsDF, path_prefix)
+    df, cutoff_depth = filter_trials(trialsDF, path_prefix)
     summaryDF = prepare_trial_summary(df, selected_columns=selected_columns)
     summaryDF.to_csv(filename, index=True)
-    return
+    return summaryDF, cutoff_depth
     
 
 __all__ = ["train_cross_validated_trees",
