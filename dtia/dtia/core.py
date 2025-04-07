@@ -6,13 +6,14 @@ Explain everything!!
 
 ########################################
 
+import pandas as pd
 import numpy as np
 from pandas import DataFrame
 from collections import deque
 from sklearn.tree import DecisionTreeClassifier
 
 from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import precision_score
+from sklearn.metrics import precision_score, accuracy_score, f1_score, recall_score
 
 from itertools import product
 
@@ -20,6 +21,29 @@ import os
 import joblib
 
 from datetime import datetime
+
+def avg_diff_metrics(trialsDF):
+    """TODO: A selection criteria for DTIA.
+
+    TODO: Explain everything!!
+    """
+    trnDF = trialsDF["trn_prc trn_acc trn_f1 trn_rec".split()]
+    valDF = trialsDF["val_prc val_acc val_f1 val_rec".split()]
+    diffDF = pd.DataFrame(trnDF.to_numpy() - valDF.to_numpy(),
+                          columns="diff_prc diff_acc diff_f1 diff_rec".split()).abs()
+    diff_avg = diffDF.mean(axis=1)
+    diffDF["diff_avg"] = diff_avg
+    return diff_avg
+
+
+def avg_val_metrics(trialsDF):
+    """TODO: A selection criteria for DTIA.
+
+    TODO: Explain everything!!
+    """
+    valDF = trialsDF["val_prc val_acc val_f1 val_rec".split()]
+    val_metrics_avg = valDF.mean(axis=1)
+    return val_metrics_avg
 
 def prepare_tree_dataframe(t):
     """TODO: Add documentation.
@@ -79,7 +103,7 @@ def prepare_tree_dataframe(t):
     pathsDF = DataFrame(traversed_tree, columns="id node_name parent path".split())
     pathsDF.set_index("id", inplace=True)
     traversed_nodesDF = nodesDF.join(pathsDF)
-    traversed_nodesDF.reset_index()
+    traversed_nodesDF.reset_index(inplace=True)
     traversed_nodesDF.set_index("node_name", inplace=True)
     return traversed_nodesDF
 
@@ -93,9 +117,9 @@ def train_cross_validated_trees(data, targets,
                                 cross_val_kfolds,
                                 verbose=2,
                                 random_state=None,
-                                score_func=lambda y, yhat: precision_score(y, yhat, average='weighted'),
-                                overfitting_threshold=.2,
-                                underfitting_threshold=.7,
+                                # score_func=lambda y, yhat: precision_score(y, yhat, average='weighted'),
+                                overfitting_threshold=.05,
+                                underfitting_threshold=.95,
                                 trial_name="trial",
                                 save_path_prefix=None, save_source_data=True, overwrite=False,
                                 other_dt_kwargs={},
@@ -122,45 +146,36 @@ def train_cross_validated_trees(data, targets,
     trials = product(max_depths, min_samples, kfolds)
     trial_id = 0
     for d, s, k in trials:
-        kfold_generator = StratifiedKFold(n_splits=k,  # Can cause problems if seed not set
+        kfold_generator = StratifiedKFold(n_splits=k,  # TODO: Can cause problems if seed not set
                                           shuffle=True, random_state=SEED)
         for trn_idxs, val_idxs in kfold_generator.split(data, targets):
-            clf = DecisionTreeClassifier(random_state=SEED,  # Consider having seperate seed
+            clf = DecisionTreeClassifier(random_state=SEED,  # TODO: Consider having seperate seed
                                          max_depth=d,
                                          min_samples_leaf=s, **other_dt_kwargs)
             clf.fit(data[trn_idxs], targets[trn_idxs], **other_dt_fit_kwargs)
             trnY_pred = clf.predict(data[trn_idxs])
             valY_pred = clf.predict(data[val_idxs])
             
-            trn_prc = precision_score(targets[trn_idxs], trnY_pred, average='weighted')
-            val_prc = precision_score(targets[val_idxs], valY_pred, average='weighted')
-            verbose > 0 and print(f"{trial_id=} {trn_prc=} {val_prc=}")
+            # trn_prc = precision_score(targets[trn_idxs], trnY_pred, average='weighted')
+            # val_prc = precision_score(targets[val_idxs], valY_pred, average='weighted')
+            # verbose > 0 and print(f"{trial_id=} {trn_prc=} {val_prc=}")
             
             nodeDF = prepare_tree_dataframe(clf.tree_)
-            isOverfitting = abs(trn_prc - val_prc) > overfitting_threshold
-            isUnderfitting = val_prc < underfitting_threshold
 
-            isOverfitting = int(isOverfitting)
-            isUnderfitting = int(isUnderfitting)
+            trn_Accuracy        = accuracy_score(targets[trn_idxs],     trnY_pred)
+            trn_Precision       = precision_score(targets[trn_idxs],    trnY_pred, average='weighted')
+            trn_F1_Score        = f1_score(targets[trn_idxs],           trnY_pred, average='weighted')
+            trn_Recall          = recall_score(targets[trn_idxs],       trnY_pred, average='weighted')
             
-            verbose > 1 and isOverfitting and print(f"OVERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {overfitting_threshold=}")
-            verbose > 1 and isUnderfitting and print(f"UNDERFITTING {trial_id=} {d=} {s=} {k=} {trn_prc=} {val_prc=} {underfitting_threshold=}")
-
-            # run_path_prefix = os.path.join(save_path_prefix, f"run_{d:04d}_{s:04d}_{k:04d}")
-            # 
-            # if not os.path.exists(run_path_prefix):
-            #     os.mkdir(run_path_prefix)
-            #     pass
-            # 
-            # def save_model(model, filename):
-            #     joblib.dump(clf, filename)
-            #     return
-            # 
-            # def save_data(data, filename):
-            #  pass   
+            val_Accuracy        = accuracy_score(targets[val_idxs],     valY_pred)
+            val_Precision       = precision_score(targets[val_idxs],    valY_pred, average='weighted')
+            val_F1_Score        = f1_score(targets[val_idxs],           valY_pred, average='weighted')
+            val_Recall          = recall_score(targets[val_idxs],       valY_pred, average='weighted')
             
+            file_name = f"{trial_id=:04d}_{d=:02d}_{s=:02d}_{k=:02d}_{trn_Precision=:.2f}_{val_Precision=:.2f}"
+            print(file_name)
             if save_path_prefix:
-                file_name = f"{trial_id=:04d}_{d=:02d}_{s=:02d}_{k=:02d}_{trn_prc=:.2f}_{val_prc=:.2f}_{isOverfitting=}_{isUnderfitting=}"
+                file_name = f"{trial_id=:04d}_{d=:02d}_{s=:02d}_{k=:02d}_{trn_Precision=:.2f}_{val_Precision=:.2f}"
                 csvs_path = os.path.join(trial_path, "csvs")
                 idxs_path = os.path.join(trial_path, "idxs")
                 mdls_path = os.path.join(trial_path, "mdls")
@@ -193,13 +208,15 @@ def train_cross_validated_trees(data, targets,
                           trial_id=trial_id,
                           min_samples=s,
                           num_folds=k,
-                          # nodeDF=nodeDF,
-                          # model=clf,
-                          # data=data, targets=targets,
-                          filename=file_name,
-                          # trnXi=trn_idxs, trnYi=trn_idxs,
-                          # valXi=val_idxs, valYi=val_idxs,
-                          overfitting=isOverfitting, underfitting=isUnderfitting)
+                          trn_prc=trn_Precision,
+                          trn_acc=trn_Accuracy, 
+                          trn_f1=trn_F1_Score, 
+                          trn_rec=trn_Recall, 
+                          val_prc=val_Precision,
+                          val_acc=val_Accuracy, 
+                          val_f1=val_F1_Score, 
+                          val_rec=val_Recall, 
+                          filename=file_name)
             
             records.append(record)
             trial_id += 1
@@ -207,6 +224,12 @@ def train_cross_validated_trees(data, targets,
         pass
     df = DataFrame(records)
     df.set_index('trial_id', inplace=True)
+    df["avg_diff_metrics"]      = avg_diff_metrics(df)
+    df["avg_val_metrics"]       = avg_val_metrics(df)
+    overfitting_mask            = df.avg_diff_metrics > overfitting_threshold
+    underfitting_mask           = df.avg_val_metrics < underfitting_threshold
+    good_models_mask            = (~overfitting_mask & ~underfitting_mask)
+    df = df[good_models_mask]
     df.to_csv(os.path.join(trial_path, "index.csv"), index=False)
-    return df
+    return df, trial_name
 
