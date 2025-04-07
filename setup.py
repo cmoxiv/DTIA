@@ -1,4 +1,5 @@
-from setuptools import setup
+
+from setuptools import setup, find_packages
 
 setup(
     name='dtia',
@@ -8,7 +9,7 @@ setup(
     author='Karim Hossny',
     author_email='k.hossny@kth.se',
     license='BSD 2-clause',
-    packages=['dtia'],
+    packages=find_packages(),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
