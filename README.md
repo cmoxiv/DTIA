@@ -51,7 +51,6 @@ python iris_example.py
 ## Examples
 
 ### Iris Example
-...
 ``` python
 
 from dtia import DecisionTreeInsightAnalyser as DTIA
@@ -94,7 +93,6 @@ print(results["summaryDF"])
 ```
 
 ### Advanced Example: Looking Under the Hood
-...
 ``` python
 
 import pandas as pd
