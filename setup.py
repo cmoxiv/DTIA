@@ -11,8 +11,9 @@ setup(
     license='BSD 2-clause',
     packages=find_packages(),
     install_requires=[
-        'numpy>=1.21.0',
-        'pandas'
+        'numpy',
+        'pandas',
+        'tqdm'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
