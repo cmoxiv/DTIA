@@ -57,7 +57,6 @@ python iris-example.py
 
 ### Iris Example
 ``` python
-
 from dtia import DecisionTreeInsightAnalyser as DTIA
 
 from sklearn.datasets import load_iris
@@ -77,6 +76,7 @@ kfolds = [2, 4, 8]
 analyser = DTIA(max_depths=max_depths,
                 min_samples=min_samples,
                 kfolds=kfolds,
+                trial_name="mytrial",
                 save_figs=True, # False for faster generation
                 verbose=1,
                 random_state=SEED,
@@ -94,7 +94,6 @@ for k, v in results.items():
     pass
 
 print(results["summaryDF"])
-    
 ```
 
 ### Advanced Example: Looking Under the Hood
