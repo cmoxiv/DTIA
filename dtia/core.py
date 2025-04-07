@@ -149,7 +149,7 @@ def train_cross_validated_trees(data, targets,
     save_path_prefix = save_path_prefix or "./results"
     trial_path = os.path.join(save_path_prefix, trial_name)
     if not os.path.exists(trial_path):
-        os.mkdir(trial_path)
+        os.makedirs(trial_path, exist_ok=True)
 
     trials = list(product(max_depths, min_samples, kfolds))
     trial_id = 0
