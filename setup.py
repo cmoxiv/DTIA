@@ -1,6 +1,10 @@
 
 from setuptools import setup, find_packages
 
+def read_requirements():
+    with open("requirements.txt") as f:
+        return f.read().splitlines()
+    
 setup(
     name='dtia',
     version='0.1.1',
@@ -10,11 +14,7 @@ setup(
     author_email='k.hossny@kth.se',
     license='BSD 2-clause',
     packages=find_packages(),
-    install_requires=[
-        'numpy',
-        'pandas',
-        'tqdm'
-    ],
+    install_requires=read_requirements(),
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Science/Research',
