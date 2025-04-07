@@ -1,27 +1,48 @@
 # DTIA: Decision Tree Insight Analysis Tool
+Decision Tree Insights Analytics (DTIA) is a novel deployment method
+for supervised machine learning that shifts the focus from creating
+models that differentiate categorical outputs based on input features
+to discovering associations between inputs and outputs. DTIA offers an
+alternative perspective to traditional machine learning techniques,
+such as Random Forest feature importance attributes and K-means
+clustering for feature ranking.
+
+DTIA was developed in response to the growing need for methods that
+can help uncover hidden patterns and relationships within complex
+datasets, particularly in cases where abstract information gain
+calculations provide more detailed insights than numerical attribute
+importance.  A tutorial for how to use DTIA can be found on YouTube
+via the link https://youtu.be/VsPKSYKxeI4
+
 Link to the paper published in Machine Learning: Science and Technology:
 [https://iopscience.iop.org/article/10.1088/2632-2153/ad7f23](https://iopscience.iop.org/article/10.1088/2632-2153/ad7f23#:~:text=is%20Open%20access-,Decision%20Tree%20Insights%20Analytics%20(DTIA)%20Tool%3A%20an%20Analytic%20Framework,Records%20Across%20Fields%20of%20Science)
 
-Decision Tree Insights Analytics (DTIA) is a novel deployment method for supervised machine learning that shifts the focus from creating models that differentiate categorical outputs based on input features to discovering associations between inputs and outputs. DTIA offers an alternative perspective to traditional machine learning techniques, such as Random Forest feature importance attributes and K-means clustering for feature ranking.
+``` bibtex
+@article{Hossny_2024,
+doi = {10.1088/2632-2153/ad7f23},
+url = {https://dx.doi.org/10.1088/2632-2153/ad7f23},
+year = {2024},
+month = {oct},
+publisher = {IOP Publishing},
+volume = {5},
+number = {4},
+pages = {045004},
+author = {Hossny, Karim and Hossny, Mohammed and Cougnoux, Antony and Mahmoud, Loay and Villanueva, Walter},
+title = {Decision tree insights analytics (DTIA) tool: an analytic framework to identify insights from large data records across fields of science},
+journal = {Machine Learning: Science and Technology},
+abstract = {Supervised machine learning (SML) techniques have been developed since the 1960s. Most of their applications were oriented towards developing models capable of predicting numerical values or categorical output based on a set of input variables (input features). Recently, SML models’ interpretability and explainability were extensively studied to have confidence in the models’ decisions. In this work, we propose a new deployment method named Decision Tree Insights Analytics (DTIA) that shifts the purpose of using decision tree classification from having a model capable of differentiating the different categorical outputs based on the input features to systematically finding the associations between inputs and outputs. DTIA can reveal interesting areas in the feature space, leading to the development of research questions and the discovery of new associations that might have been overlooked earlier. We applied the method to three case studies: (1) nuclear reactor accident propagation, (2) single-cell RNA sequencing of Niemann-Pick disease type C1 in mice, and (3) bulk RNA sequencing for breast cancer staging in humans. The developed method provided insights into the first two. On the other hand, it showed some of the method’s limitations in the third case study. Finally, we presented how the DTIA’s insights are more agreeable with the abstract information gain calculations and provide more in-depth information that can help derive more profound physical meaning compared to the random forest’s feature importance attribute and K-means clustering for feature ranking.}}
+```
 
-DTIA was developed in response to the growing need for methods that can help uncover hidden patterns and relationships within complex datasets, particularly in cases where abstract information gain calculations provide more detailed insights than numerical attribute importance.
-A tutorial for how to use DTIA can be found on YouTube via the link 
-https://youtu.be/VsPKSYKxeI4
 
 
 ## Installation
-Download and install Anaconda Prompt Powershell. <br />
-Download and install Git. <br />
-Open anaconda prompt PowerShell. <br />
+Open anaconda prompt PowerShell or CMD. <br />
 
 ```powershell
-conda create -n dtia Python=3.9
-conda activate dtia
+conda create -n dtia-test Python
+conda activate dtia-test
 conda install pip
-git clone https://github.com/KHossny/DTIA.git dtia
-cd dtia
-python -m pip install -r requirements.txt
-python -m pip install .
+pip install git+https://github.com/cmoxiv/DTIA.git
 ```
 
 To run the `iris` example.
@@ -58,58 +79,6 @@ load the labels in a variable called 'y' <br />
 <br />
 The following code imports the 'iris' dataset and develops decision tree models using different hyperparameters. The minimum number of samples per leaf ranges from one to 20 with the step of one. The maximum depth of the tree ranges between two and ten with a step of one. Each model was trained and tested over ten folds. The selection criteria for the models to be analyzed were to have an average difference between training and test classification metrics of 0.01, and the average test metrics should be higher than 0.9. Finally, it used the same path where you are in the Anaconda prompt PowerShell to create the results folder. The results folder is named '.#dtia#'. In '.#dtia#' there is a folder named by the time stamp. This folder includes two folders. The 'csvs' and 'joblibs' folders contain the csv files describing the details of each model that passed the selection criteria and the joblib files of all the generated models, respectively.
 
-```python
-from sklearn.datasets import load_iris
-from dtia import DecisionTreeInsightAnalyser
-
-x, y = load_iris(return_X_y=True)
-
-dtia_clf = DecisionTreeInsightAnalyser(
-    test_percent=0.2,
-    min_s_leaf_inc=1,
-    min_s_leaf=20,
-    max_depth_inc=1,
-    max_depth=10,
-    number_of_folds=10,
-    metrics_diff=0.01,
-    avg_tst_metrics=0.90,
-    use_time_stamped_folders=True,
-    Model_Metrics_Out_Path=None,
-    Model_Details_Out_Path=None,
-    Imp_Nodes_Path_file=f"./imp_nodes.csv",
-    N_ID_Feature_Threshold_Path_file=f"./n_id_feat_thresh.csv")
-
-dtia_clf.fit(x, y)
-```
-
-A more generic example is demonstrated below using pandas in reading the csv so you will have to import pandas first. The operating code will be as follows. 
-
-```python
-from dtia import DecisionTreeInsightAnalyser
-import pandas as pd
-Data_1 = pd.read_csv('csv\\path\\file.csv', usecols = ['col_name_1', 'col_name_2'])
-Data_2 = pd.read_csv('csv\\path\\file.csv', usecols = ['Labels_col_Name'])
-x = Data_1.values
-y = Data_2.values
-
-dtia_clf = DecisionTreeInsightAnalyser(
-    test_percent=0.2,
-    min_s_leaf_inc=1,
-    min_s_leaf=20,
-    max_depth_inc=1,
-    max_depth=10,
-    number_of_folds=10,
-    metrics_diff=0.01,
-    avg_tst_metrics=0.90,
-    use_time_stamped_folders=True,
-    Model_Metrics_Out_Path='path\\to\\the\\place\\where\\you\\want\\the\\file\\to\\be\\saved\\',
-    Model_Details_Out_Path='path\\to\\the\\place\\where\\you\\want\\the\\file\\to\\be\\saved\\',
-    Imp_Nodes_Path_file="path\\to\\the\\place\\where\\you\\want\\the\\file\\to\\be\\saved\\imp_nodes.csv",
-    N_ID_Feature_Threshold_Path_file="path\\to\\the\\place\\where\\you\\want\\the\\file\\to\\be\\saved\\n_id_feat_thresh.csv")
-
-dtia_clf.fit(x, y)
-```
-
 ### iris Example
 
 Specific iris example with default location for output saving.
@@ -122,8 +91,8 @@ from dtia import DecisionTreeInsightAnalyser
 
 
 X, y = load_iris(return_X_y=True)
-dtia_clf = DecisionTreeInsightAnalyser(                 
-    Model_Metrics_Out_Path="output/joblibs/",
+dtia_clf = DecisionTreeInsightAnalyser(
+	Model_Metrics_Out_Path="output/joblibs/",
     Model_Details_Out_Path="output/csvs/",
     Imp_Nodes_Path_file=f"./imp_nodes.csv",
     N_ID_Feature_Threshold_Path_file=f"./n_id_feat_thresh.csv")
