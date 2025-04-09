@@ -36,6 +36,3 @@ for k, v in results.items():
 
 print(results["summaryDF"])
     
-# pront(12)
-# 
-# DTIA
