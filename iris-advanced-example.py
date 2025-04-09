@@ -23,8 +23,8 @@ trialsDF, trialname = train_cross_validated_trees(data, targets,
                                                   random_state=SEED,
                                                   overfitting_threshold=.05,
                                                   underfitting_threshold=.95,
-                                                  trial_name="my-trial",
-                                                  save_figs=True, # For faster generation
+                                                  trial_name="my-iris-trial",
+                                                  save_figs=False, # False for faster generation
                                                   save_path_prefix="./results")
 
 filteredDF, cutoff_depth = filter_trials(trialsDF, f"results/{trialname}", verbose=1)
@@ -32,6 +32,5 @@ summaryDF = prepare_trial_summary(filteredDF, selected_columns="feature threshol
 
 print(filteredDF)
 print(summaryDF)
-
 
 

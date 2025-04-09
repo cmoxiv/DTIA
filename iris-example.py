@@ -18,7 +18,8 @@ kfolds = [2, 4, 8]
 analyser = DTIA(max_depths=max_depths,
                 min_samples=min_samples,
                 kfolds=kfolds,
-                save_figs=True, # False for faster generation
+                trial_name="my-iris-trial", 
+                save_figs=False, # False for faster generation
                 verbose=1,
                 random_state=SEED,
                 overfitting_threshold=.05,

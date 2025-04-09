@@ -1,12 +1,12 @@
 
 from dtia import DecisionTreeInsightAnalyser as DTIA
 
-from sklearn.datasets import load_breast_cancer
+from sklearn.datasets import load_iris
 
 # Seed left `None` dliberately.
 SEED = None
 
-dataset = load_breast_cancer()
+dataset = load_iris()
 data, target = dataset.data, dataset.target
 targets = target
 
@@ -18,8 +18,7 @@ kfolds = [2, 4, 8]
 analyser = DTIA(max_depths=max_depths,
                 min_samples=min_samples,
                 kfolds=kfolds,
-                trial_name="my-bc-trial",
-                save_figs=False, # False for faster generation
+                save_figs=True, # False for faster generation
                 verbose=1,
                 random_state=SEED,
                 overfitting_threshold=.05,
@@ -36,3 +35,7 @@ for k, v in results.items():
     pass
 
 print(results["summaryDF"])
+    
+# pront(12)
+# 
+# DTIA
